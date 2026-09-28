@@ -27,6 +27,7 @@
     } = $props();
 
     let dialog: HTMLDialogElement;
+    let resultList: HTMLDivElement;
 
     // We can't use the `open` property on the dialog, because then some events don't fire
     $effect(() => {
@@ -125,12 +126,18 @@
     async function scrollIntoView() {
         await tick();
 
-        const element = document.querySelector(".silversearch-selected");
+        const element = resultList?.querySelector(".silversearch-selected");
         if (!element) return;
 
-        element.scrollIntoView({
-            block: "nearest",
-        });
+        // scrollIntoView also scrolls ancestor documents, which can push the
+        // search field out of view in a mobile panel iframe.
+        const item = element.getBoundingClientRect();
+        const list = resultList.getBoundingClientRect();
+        if (item.top < list.top) {
+            resultList.scrollTop += item.top - list.top;
+        } else if (item.bottom > list.bottom) {
+            resultList.scrollTop += Math.min(item.bottom - list.bottom, item.top - list.top);
+        }
     }
 </script>
 
@@ -161,7 +168,7 @@
         />
     </div>
     <div class="silversearch-help-text">{@render helpText()}</div>
-    <div class="silversearch-result-list">
+    <div class="silversearch-result-list" bind:this={resultList}>
         {#each results as result, i}
             <ResultContainer
                 selected={i === selectedIndex}
@@ -195,19 +202,41 @@
 </dialog>
 
 <style>
-    dialog {
-        margin-top: 60px;
+    dialog.silversearch-modal-box {
         padding: 0;
         width: 700px;
         max-width: 90%;
-        box-sizing: border-box;
-        overflow: hidden;
         color: var(--modal-color);
         background-color: var(--modal-background-color);
         border: 1px solid var(--modal-border-color);
         border-radius: var(--ui-radius-xl);
         box-shadow: 0 24px 60px var(--modal-shadow-color);
         outline: none;
+        /* Own the geometry instead of inheriting page-level modal positioning. */
+        position: fixed;
+        inset: 0 0 auto;
+        margin: 60px auto 0;
+        box-sizing: border-box;
+        max-height: calc(100vh - 68px);
+        max-height: calc(100dvh - 68px);
+        overflow: hidden;
+    }
+
+    dialog[open] {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .silversearch-header, .silversearch-help-text {
+        flex-shrink: 0;
+    }
+
+    @media (max-width: 600px), (max-height: 500px) {
+        dialog.silversearch-modal-box {
+            margin-top: 8px;
+            max-height: calc(100vh - 16px);
+            max-height: calc(100dvh - 16px);
+        }
     }
 
     dialog::backdrop {
@@ -251,8 +280,17 @@
     }
 
     .silversearch-result-list {
+        min-height: 0;
         max-height: 80vh;
         overflow-y: auto;
+        overscroll-behavior: contain;
         padding: 2px 8px 8px;
+    }
+
+    @media (pointer: coarse) {
+        .silversearch-input {
+            /* Prevent iOS from zooming the page when the input receives focus. */
+            font-size: max(16px, 1em);
+        }
     }
 </style>
