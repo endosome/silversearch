@@ -27,6 +27,7 @@
     } = $props();
 
     let dialog: HTMLDialogElement;
+    let resultList: HTMLDivElement;
 
     // We can't use the `open` property on the dialog, because then some events don't fire
     $effect(() => {
@@ -125,12 +126,18 @@
     async function scrollIntoView() {
         await tick();
 
-        const element = document.querySelector(".silversearch-selected");
+        const element = resultList?.querySelector(".silversearch-selected");
         if (!element) return;
 
-        element.scrollIntoView({
-            block: "nearest",
-        });
+        // scrollIntoView also scrolls ancestor documents, which can push the
+        // search field out of view in a mobile panel iframe.
+        const item = element.getBoundingClientRect();
+        const list = resultList.getBoundingClientRect();
+        if (item.top < list.top) {
+            resultList.scrollTop += item.top - list.top;
+        } else if (item.bottom > list.bottom) {
+            resultList.scrollTop += Math.min(item.bottom - list.bottom, item.top - list.top);
+        }
     }
 </script>
 
@@ -161,7 +168,7 @@
         />
     </div>
     <div class="sb-help-text">{@render helpText()}</div>
-    <div class="sb-result-list" style="max-height: 80vh;">
+    <div class="sb-result-list" bind:this={resultList}>
         {#each results as result, i}
             <ResultContainer
                 selected={i === selectedIndex}
@@ -195,8 +202,40 @@
 </dialog>
 
 <style>
-    dialog {
+    dialog.sb-modal-box {
         outline: none;
+        /* Own the geometry instead of inheriting page-level modal positioning. */
+        position: fixed;
+        inset: 0 0 auto;
+        margin: 60px auto 0;
+        box-sizing: border-box;
+        max-height: calc(100vh - 68px);
+        max-height: calc(100dvh - 68px);
+        overflow: hidden;
+    }
+
+    dialog[open] {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sb-header, .sb-help-text {
+        flex-shrink: 0;
+    }
+
+    dialog .sb-result-list {
+        min-height: 0;
+        max-height: 80vh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    @media (max-width: 600px), (max-height: 500px) {
+        dialog.sb-modal-box {
+            margin-top: 8px;
+            max-height: calc(100vh - 16px);
+            max-height: calc(100dvh - 16px);
+        }
     }
 
     #mini-editor {
@@ -210,5 +249,12 @@
         font-family: var(--ui-font);
         font-size: 1em;
         color: inherit;
+    }
+
+    @media (pointer: coarse) {
+        #mini-editor {
+            /* Prevent iOS from zooming the page when the input receives focus. */
+            font-size: max(16px, 1em);
+        }
     }
 </style>
