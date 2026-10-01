@@ -33,8 +33,27 @@
     // We can't use the `open` property on the dialog, because then some events don't fire
     $effect(() => {
         const cleanup = trackModalViewport(dialog);
-        dialog.showModal();
-        return cleanup;
+        const frame = window.frameElement;
+        let active = true;
+
+        async function showDialog() {
+            // Hidden dialogs don't trigger font downloads on their own. Load
+            // the input's font explicitly before showing and focusing it.
+            const input = dialog.querySelector("input")!;
+            const style = getComputedStyle(input);
+            try {
+                await document.fonts.load(`${style.fontSize} ${style.fontFamily}`);
+            } catch {
+                // Use the browser's fallback font if the custom font fails.
+            }
+            if (active && dialog.isConnected && (!frame || frame.isConnected)) dialog.showModal();
+        }
+
+        showDialog();
+        return () => {
+            active = false;
+            cleanup();
+        };
     });
 
     function onClickWindow() {
