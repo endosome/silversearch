@@ -211,14 +211,15 @@
         border: 1px solid var(--modal-border-color);
         border-radius: var(--ui-radius-xl);
         box-shadow: 0 24px 60px var(--modal-shadow-color);
+        --silversearch-modal-top: 60px;
         outline: none;
         /* Own the geometry instead of inheriting page-level modal positioning. */
         position: fixed;
         inset: 0 0 auto;
-        margin: 60px auto 0;
+        margin: var(--silversearch-modal-top) auto 0;
         box-sizing: border-box;
-        max-height: calc(100vh - 68px);
-        max-height: calc(100dvh - 68px);
+        max-height: calc(100vh - var(--silversearch-modal-top) - 8px);
+        max-height: calc(100dvh - var(--silversearch-modal-top) - 8px);
         overflow: hidden;
     }
 
@@ -233,9 +234,10 @@
 
     @media (max-width: 600px), (max-height: 500px) {
         dialog.silversearch-modal-box {
-            margin-top: 8px;
-            max-height: calc(100vh - 16px);
-            max-height: calc(100dvh - 16px);
+            /* The dialog's top layer is confined to the panel iframe. Leave
+               room for SilverBullet's title bar in the parent document, too.
+               SilverBullet 2.10 has a 55px bar but no --sb-top-height token. */
+            --silversearch-modal-top: calc(8px + var(--sb-top-height, 55px) + var(--sb-standalone-top-offset, 0px));
         }
     }
 
