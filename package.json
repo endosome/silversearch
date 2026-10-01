@@ -6,6 +6,7 @@
         "modal"
     ],
     "scripts": {
-        "build": "npm run build --workspace=modal && ./scripts/update_version.sh && npm run build --workspace=worker"
+        "build": "npm run build --workspace=modal && ./scripts/update_version.sh && npm run build --workspace=worker",
+        "test": "node --experimental-strip-types --test tests/*.test.mts"
     }
 }

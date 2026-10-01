@@ -5,6 +5,7 @@
     import SearchApology from "./SearchApology.svelte";
     import SearchTips from "./SearchTips.svelte";
     import { query } from "./query.svelte";
+    import { trackModalViewport } from "../util/viewport";
 
     let {
         search,
@@ -31,7 +32,9 @@
 
     // We can't use the `open` property on the dialog, because then some events don't fire
     $effect(() => {
+        const cleanup = trackModalViewport(dialog);
         dialog.showModal();
+        return cleanup;
     });
 
     function onClickWindow() {
@@ -208,10 +211,12 @@
         /* Own the geometry instead of inheriting page-level modal positioning. */
         position: fixed;
         inset: 0 0 auto;
+        top: var(--silversearch-viewport-top, 0px);
         margin: var(--silversearch-modal-top) auto 0;
         box-sizing: border-box;
         max-height: calc(100vh - var(--silversearch-modal-top) - 8px);
         max-height: calc(100dvh - var(--silversearch-modal-top) - 8px);
+        max-height: calc(var(--silversearch-viewport-height, 100dvh) - var(--silversearch-modal-top) - 8px);
         overflow: hidden;
     }
 
