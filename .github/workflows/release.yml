@@ -1,6 +1,11 @@
 name: Release
 on:
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name for manual release (e.g., v1.0.0)'
+        required: false
+        type: string
   push:
     tags:
       - "*"
@@ -40,6 +45,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
           draft: false
           files: |
             worker/silversearch.plug.js
