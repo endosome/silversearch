@@ -1,5 +1,5 @@
 ---
-name: Library/mrmugame/Silversearch
+name: Library/endosome/Silversearch
 tags: meta/library
 files:
 - silversearch.plug.js
