@@ -1,22 +1,14 @@
 import "./modal.css"
 import { mount } from "svelte"
 import Modal from "./components/Modal.svelte"
+import { waitForStylesheet } from "./util/stylesheet"
 
 async function mountModal() {
     const path: Promise<string> = syscall("editor.getCurrentPath");
     const isDocumentEditor: Promise<string> = syscall("editor.getCurrentEditor");
     const customStyles = syscall("editor.getUiOption", "customStyles");
 
-    await Promise.race([
-        new Promise((resolve) => setTimeout(resolve, 75)),
-        new Promise((resolve) => {
-            const element = document.querySelector("link#stylesheet");
-
-            if (!element) return;
-
-            (element as HTMLLinkElement).onload = resolve;
-        })
-    ]);
+    await waitForStylesheet(document.querySelector<HTMLLinkElement>("link#stylesheet"));
 
     mount(Modal, {
         target: document.querySelector("#container")!,
