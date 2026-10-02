@@ -6,6 +6,15 @@ Silversearch is a plug for [Silverbullet](https://silverbullet.md/) implementing
 ## Installation
 Silversearch is part of the [`Std`](https://silverbullet.md/Repositories/Std) repostitory and can by installed using the [Library Manager](https://silverbullet.md/Library%20Manager). You will have to navigate to `Library/Std/Pages/Library Manager` in *your* space and look for Silversearch under the available libraries and press `Install`.
 
+To use this fork, follow these steps:
+1. Open SilverBullet.
+2. Run **`Configuration: Open`** from the command palette.
+3. Go to **Libraries**.
+4. Click **Install from URI**.
+5. Enter `ghr:endosome/silversearch@edge/PLUG.md`.
+6. Click **Install**.
+7. If needed, run **`System: Reload`**.
+
 ## Usage
 You can open the search dialog using the `Silversearch: Search` command (`Ctrl-s`/`Cmd-s`). Simply start typing to begin your search, helpful tips for refining your searches will appear at the start. If Silversearch is missing the most up-to-date content, you can rebuild the search database using the `Silversearch: Reindex` command. If you rebuild Silverbullets index, Silversearch will also rebuild, so there is no need to run both commands. The `Silversearch: Clear History` command is used to clear the search history.
 
