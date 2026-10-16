@@ -17,10 +17,23 @@ const cacheVersion = 4;
 
 // Loads minisearch_wasm_bg.wasm from next to the plug file. If that fails
 // (e.g. only the .plug.js was installed), minisearch keeps working on its
-// bundled JavaScript engine
+// bundled JavaScript engine.
+// The bytes are read through the space API: inside a plug worker `fetch` is
+// SilverBullet's proxied fetch, whose responses have no arrayBuffer(), so
+// letting MiniSearch.init() fetch the file itself always fails.
+const SPACE_FILE_PREFIX = "/.fs/";
+async function readWasmBytes(): Promise<Uint8Array<ArrayBuffer>> {
+    const url = new URL("minisearch_wasm_bg.wasm", import.meta.url);
+    if (!url.pathname.startsWith(SPACE_FILE_PREFIX)) {
+        throw new Error(`plug is not loaded from the space (${url.pathname})`);
+    }
+    const path = decodeURIComponent(url.pathname.slice(SPACE_FILE_PREFIX.length));
+    return await space.readDocument(path) as Uint8Array<ArrayBuffer>;
+}
+
 let wasmInit: Promise<void> | undefined;
 function initWasm(): Promise<void> {
-    wasmInit ??= MiniSearch.init().then(
+    wasmInit ??= readWasmBytes().then((bytes) => MiniSearch.init({ module_or_path: bytes })).then(
         () => console.log("[Silversearch] Using minisearch Wasm engine"),
         (e) => console.warn("[Silversearch] Couldn't load minisearch Wasm, using JavaScript engine", e),
     );
