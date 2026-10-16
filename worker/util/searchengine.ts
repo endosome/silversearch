@@ -1,6 +1,6 @@
 import { clientStore, editor, space } from "@silverbulletmd/silverbullet/syscalls";
 import { DocumentMeta, PageMeta } from "@silverbulletmd/silverbullet/type/index";
-import { SearchResult, Options, default as MiniSearch } from "minisearch"
+import { SearchResult, Options, default as MiniSearch } from "@endosome/minisearch"
 import { Query } from "./query";
 import { getPlugConfig, SilversearchSettings } from "./settings";
 import { tokenizeForIndexing, tokenizeForSearch, Tokenizer } from "./tokenizer";

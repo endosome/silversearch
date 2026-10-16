@@ -5,10 +5,10 @@
         "build": "npx plug-compile silversearch.plug.yaml"
     },
     "dependencies": {
+        "@endosome/minisearch": "^0.13.0",
         "@silverbulletmd/silverbullet": ">=2.5.3",
         "ignore": "^7.0.5",
         "md-link-extractor": "^1.2.0",
-        "minisearch": "^7.2.0",
         "search-query-parser": "^1.6.0",
         "valibot": "^1.2.0"
     }

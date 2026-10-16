@@ -1,5 +1,5 @@
 import { splitCamelCase, splitHyphens } from "./utils";
-import { QueryCombination } from "minisearch";
+import { QueryCombination } from "@endosome/minisearch";
 import { extractMdLinks } from "md-link-extractor";
 import { BRACKETS_AND_SPACE, SPACE_OR_PUNCTUATION } from "./global";
 import * as v from "valibot"
