@@ -3,3 +3,4 @@ node_modules/
 dist/
 .vscode/
 silversearch.plug.js*
+minisearch_wasm_bg.wasm

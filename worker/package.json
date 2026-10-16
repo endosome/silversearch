@@ -2,7 +2,7 @@
     "name": "worker",
     "private": true,
     "scripts": {
-        "build": "npx plug-compile silversearch.plug.yaml"
+        "build": "npx plug-compile silversearch.plug.yaml && cp \"$(node -p \"require.resolve('@endosome/minisearch/minisearch_wasm_bg.wasm')\")\" ."
     },
     "dependencies": {
         "@endosome/minisearch": "^0.13.0",

@@ -51,4 +51,5 @@ jobs:
           body: Automated build from commit ${{ github.sha }}
           files: |
             worker/silversearch.plug.js
+            worker/minisearch_wasm_bg.wasm
             PLUG.md

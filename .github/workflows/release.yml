@@ -49,4 +49,5 @@ jobs:
           draft: false
           files: |
             worker/silversearch.plug.js
+            worker/minisearch_wasm_bg.wasm
             PLUG.md

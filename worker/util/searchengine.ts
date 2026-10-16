@@ -15,6 +15,18 @@ import ignore, { Ignore } from "ignore";
 
 const cacheVersion = 4;
 
+// Loads minisearch_wasm_bg.wasm from next to the plug file. If that fails
+// (e.g. only the .plug.js was installed), minisearch keeps working on its
+// bundled JavaScript engine
+let wasmInit: Promise<void> | undefined;
+function initWasm(): Promise<void> {
+    wasmInit ??= MiniSearch.init().then(
+        () => console.log("[Silversearch] Using minisearch Wasm engine"),
+        (e) => console.warn("[Silversearch] Couldn't load minisearch Wasm, using JavaScript engine", e),
+    );
+    return wasmInit;
+}
+
 export class SearchEngine {
     private minisearch: MiniSearch;
     private entryCache: Map<string, CacheEntry>;
@@ -29,6 +41,8 @@ export class SearchEngine {
     }
 
     public static async create(settings: SilversearchSettings): Promise<SearchEngine> {
+        await initWasm();
+
         const tokenizers: Tokenizer[] = (await Promise.all(Object.entries(settings.tokenizers).map(async ([path, config]) => {
             return await Tokenizer.loadFromPath(path, config);
         }))).filter(t => t !== null);
