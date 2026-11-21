@@ -22,6 +22,8 @@ Indexing for documents isn't handled by Silversearch, but by other plugs or Spac
 
 - [Silverbullet PDF](https://github.com/MrMugame/silverbullet-pdf): Will index text content from PDFs using PDF.js
 
+Files that match the `ignore` setting, and documents of a type no installed plug indexes (html, json, audio, ...), are skipped without a warning. A reindex ends with one line in the browser console that counts the indexed, ignored and skipped files.
+
 If you are missing something and want to write your own indexer, you can look into the [API](#API) section.
 
 ## Keybinds

@@ -11,6 +11,7 @@ import { ResultExcerpt, ResultPage } from "../../shared/global";
 import { getNameFromPath, isMarkdownPath, Path } from "@silverbulletmd/silverbullet/lib/ref";
 import { fileName, folderName } from "@silverbulletmd/silverbullet/lib/resolve";
 import { extractContentByPath, ExtractionInfo } from "./extract";
+import { discardIfPresent, indexPath } from "./indexing";
 import ignore, { Ignore } from "ignore";
 
 const cacheVersion = 4;
@@ -148,33 +149,37 @@ export class SearchEngine {
     }
 
     public async indexByPaths(paths: Path[], progressCallback?: (done: number, all: number) => void): Promise<void> {
+        const counts = { indexed: 0, ignored: 0, unindexable: 0, failed: 0 };
         let done = 0;
 
         for (const path of paths) {
+            // Make sure we don't just get the entry from the cache
+            this.entryCache.delete(path);
+
             try {
-                // Make sure we don't just get the entry from the cache
-                this.entryCache.delete(path);
+                // TODO: Maybe use addAllAsync?
+                // We can just send the full cache entry here as the rest will just be ignored
+                const outcome = await indexPath<CacheEntry>(path, {
+                    ignored: (p) => this.ignore.ignores(p),
+                    index: this.minisearch,
+                    getEntry: (p) => this.getCacheEntry(p as Path),
+                });
+                counts[outcome]++;
 
-                if (!this.ignore.ignores(path)) {
-                    console.log(`[Silversearch] Indexing ${getNameFromPath(path)}`);
-
-                    const result = await this.getCacheEntry(path);
-                    if (!result) throw null;
-
-                    // TODO: Maybe use addAllAsync?
-                    // We can just send the full cache entry here as the rest will just be ignored
-                    if (this.minisearch.has(result.path)) this.minisearch.replace(result);
-                    else this.minisearch.add(result);
-                } else {
-                    console.log(`[Silversearch] Ignoring ${getNameFromPath(path)}`);
-
-                    this.minisearch.discard(path);
-                }
-
+                if (outcome === "indexed") console.log(`[Silversearch] Indexed ${getNameFromPath(path)}`);
+                else if (outcome === "ignored") console.debug(`[Silversearch] Ignoring ${getNameFromPath(path)}`);
+                else console.debug(`[Silversearch] No indexer for ${getNameFromPath(path)}, skipping`);
+            } catch (e) {
+                counts.failed++;
+                console.warn(`[Silversearch] Failed to index ${getNameFromPath(path)}. Skipping!`, e);
+            } finally {
+                // Every path counts, or the progress bar of a reindex never reaches 100%
                 if (progressCallback) progressCallback(++done, paths.length);
-            } catch {
-                console.warn(`[Silversearch] Failed to index ${getNameFromPath(path)}. Skipping!`);
             }
+        }
+
+        if (paths.length > 1) {
+            console.log(`[Silversearch] Indexed ${counts.indexed}, ignored ${counts.ignored}, ${counts.unindexable} without an indexer, ${counts.failed} failed`);
         }
 
         await this.writeToCache();
@@ -189,9 +194,9 @@ export class SearchEngine {
             try {
                 this.entryCache.delete(path)
 
-                this.minisearch.discard(path);
-            } catch {
-                console.error("[Silversearch] Something went wrong. Failed to delete page")
+                discardIfPresent(this.minisearch, path);
+            } catch (e) {
+                console.error("[Silversearch] Something went wrong. Failed to delete page", e)
             }
         }
 
